@@ -1,11 +1,15 @@
 <?php
-
 namespace Lib\Functions;
 
 const COMP_DIR      = './components';
 const AUTOLOAD_DIR  = './classes';
 const AUTOLOAD_EXT  = '.php';
 const AUTOLOAD_FUNC = 'spl_autoload';
+
+function is_cli()
+{
+	return in_array(PHP_SAPI, ['cli', 'cli-server']);
+}
 
 function php_version_check($version)
 {
@@ -25,14 +29,17 @@ function assert_callback($script, $line, $code = 0, $message = null)
 	echo sprintf('Assert failed: [%s:%u] "%s"', $script, $line, $message) . PHP_EOL;
 }
 
-function init_assert()
+function init_assert(Callable $callback = null)
 {
 	if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 		// cli_init();
+		if (is_null($callback)) {
+			$callback = __NAMESPACE__ . '\assert_callback';
+		}
 		assert_options(ASSERT_ACTIVE,   true);
 		assert_options(ASSERT_BAIL,     true);
 		assert_options(ASSERT_WARNING,  false);
-		assert_options(ASSERT_CALLBACK, __NAMESPACE__ . '\assert_callback');
+		assert_options(ASSERT_CALLBACK, $callback);
 	} else {
 		assert_options(ASSERT_ACTIVE,  false);
 		assert_options(ASSERT_BAIL,    false);
